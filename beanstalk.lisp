@@ -250,15 +250,67 @@
   (command-reply-case (reply connection :kick nil bound)
     (:kicked (count) (parse-integer count))))
 
+;; Super stupid YAML parsing, thanks to earl:
+
+(define-condition beanstalk:yaml-parsing-failed (beanstalk-error)
+  ((document :initarg :document :reader document))
+  (:report (lambda (o s)
+             (format s "cl-beanstalk's overly simplicistic YAML parser fails on ~S. Please contact the authors."
+                     (document o)))))
+
+(defvar *yaml-external-format* (flexi-streams:make-external-format :utf-8 :eol-style :crlf))
+
+(defun parse-yaml-data (n-bytes stream string-fields)
+  (let ((data (make-array n-bytes :element-type '(unsigned-byte 8))))
+    (read-sequence data stream)
+    (let* ((string (flexi-streams:octets-to-string data :external-format *yaml-external-format*))
+          (lines (split-sequence:split-sequence #\Newline string :remove-empty-subseqs t)))
+     (when (string= (first lines) "---")
+       (pop lines))
+     (loop for line in lines
+           if (string= "- " line :end2 2)
+             collect (subseq line 2)
+           else if (position #\: line)
+                  collect (intern (string-upcase (subseq line 0 (position #\: line))) :keyword)
+                  and collect (let ((value (subseq line (+ 2 (position #\: line)))))
+                                (if (member (intern (string-upcase (subseq line 0 (position #\: line))) :keyword)
+                                            string-fields)
+                                    value
+                                    (handler-case (parse-integer value)
+                                      (error () value))))
+           else
+             do (error 'yaml-parsing-failed :document string)))))
+
+(defun beanstalk:stats-job (connection id)
+  (command-reply-case (reply connection :stats-job nil id)
+    (:not_found () (values nil nil))
+    (:ok (bytes) (values (parse-yaml-data (parse-integer bytes) (stream-of connection)
+                                          '(:tube :state))
+                         t))))
+
+(defun beanstalk:stats-tube (connection tube)
+  (check-type tube tube-name)
+  (command-reply-case (reply connection :stats-tube nil tube)
+    (:not-found () (values nil nil))
+    (:ok (bytes) (values (parse-yaml-data (parse-integer bytes) (stream-of connection)
+                                          '(:name))
+                         t))))
+
+(defun beanstalk:stats (connection)
+  (command-reply-case (reply connection :stats nil)
+    (:not-found () (values nil nil))
+    (:ok (bytes) (values (parse-yaml-data (parse-integer bytes) (stream-of connection)
+                                          '(:version :rusage-stime :rusage-utime))
+                         t))))
+
+(defun beanstalk:list-tubes (connection)
+  (command-reply-case (reply connection :list-tubes nil)
+    (:ok (bytes) (parse-yaml-data (parse-integer bytes) (stream-of connection) nil))))
+
 (defun beanstalk:list-tube-used (connection)
   (command-reply-case (reply connection :list-tube-used nil)
     (:using (tube) tube)))
 
-;;; TODO: Implement "Other commands" from http://github.com/kr/beanstalkd/blob/v1.1/doc/protocol.txt?raw=true
-;;; These require an at least quarter-assed YAML implementation. I'm just not in the mood for this right now.
-;; stats-job
-;; stats-tube
-;; stats
-;; list-tubes
-;; list-tube-used
-;; list-tubes-watched
+(defun beanstalk:list-tubes-watched (connection)
+  (command-reply-case (reply connection :list-tubes-watched nil)
+    (:ok (bytes) (parse-yaml-data (parse-integer bytes) (stream-of connection) nil))))

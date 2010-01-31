@@ -19,7 +19,7 @@ Once you have these libraries, git clone the cl-beanstalk repository and symlink
 	
 ## Using CL-BEANSTALK
 
-First, all protocol functions (except the stats-\* and list-\* commands, which are currently unimplemented) reside in the **BEANSTALK:** package. Their names are the same as in the [beanstalk protocol documentation](http://github.com/kr/beanstalkd/blob/v1.4.2/doc/protocol.txt?raw=true).
+First, all protocol functions reside in the **BEANSTALK:** package. Their names are the same as in the [beanstalk protocol documentation](http://github.com/kr/beanstalkd/blob/v1.4.2/doc/protocol.txt?raw=true).
 
 Second, there are several error conditions specified in the protocol document, and all of these map to a specific lisp condition. All error conditions are subtypes of `BEANSTALK:BEANSTALK-ERROR`. There are several such error conditions, for an exhaustive list see the file [package.lisp](package.lisp). 
 
