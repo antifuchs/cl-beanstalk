@@ -175,7 +175,9 @@
     (read-sequence message stream)
     ;; read the terminating \r\n:
     (read-line stream)
-    (flexi-streams:octets-to-string message :external-format external-format)))
+    (if external-format
+        (flexi-streams:octets-to-string message :external-format external-format)
+        message)))
 
 (defun beanstalk:reserve (connection &key timeout (external-format :utf-8))
   (macrolet ((reservoid (command &rest args)
