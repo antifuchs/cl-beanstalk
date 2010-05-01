@@ -7,7 +7,6 @@ Feature: Injecting jobs with cl-beanstalk
 Background:
   Given the cl-beanstalk client is started
 
-
 Scenario: Injecting a job into the default queue.
 
   Given there is a worker listening on the "default" queue
