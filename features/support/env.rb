@@ -1,15 +1,8 @@
 require 'cucumber'
 require 'spec'
 
-require 'singleton'
-require 'pty'
-require 'expect'
-
-require "json"
-require "socket"
-
 require 'beanstalk-client'
-require File.expand_path('clucumber', File.dirname(__FILE__))
+require 'clucumber'
 
 # Constants:
 PORT = 11317
@@ -33,22 +26,14 @@ unless File.exist?(File.expand_path("../step_definitions/clucumber_override.wire
     puts(@main_clucumber && @main_clucumber.output)
   end
 end
+
+
 at_exit {
   system "kill #{@beanstalk.pid}" rescue nil
 }
 
 @beanstalk = IO.popen("beanstalkd -p #{PORT}")
 
-
-
-class CLAdapter
-  include Singleton
-  
-  def reconnect
-    send_lisp_code "(when *connection* (beanstalk:disconnect *connection*) (setf *connection* nil))"
-    send_lisp_code "(progn (setf *connection* (beanstalk:connect \"localhost\" #{PORT})) nil)"
-  end
-end
 
 module CLBeanstalkWorld
 end
