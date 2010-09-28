@@ -2,7 +2,7 @@ Feature: Injecting jobs with cl-beanstalk
 
   As a beanstalk client
   I want to inject jobs into the beanstalk server
-  So that my workers can units of work, in the right order.
+  So that my workers can get units of work, in the right order.
 
 Background:
   Given the cl-beanstalk client is started
