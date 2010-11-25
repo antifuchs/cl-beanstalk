@@ -12,16 +12,11 @@ BEANSTALK_CONNSPEC = "localhost:#{PORT}"
 
 unless File.exist?(File.expand_path("../step_definitions/clucumber_override.wire", File.dirname(__FILE__)))
   begin
-    @main_clucumber = ClucumberSubprocess.new(File.expand_path("../", File.dirname(__FILE__)),
-                                              :port => 42428)
-    at_exit do
-      @main_clucumber.kill
-    end
-
-    @main_clucumber.start <<-LISP
+    ClucumberSubprocess.launch(File.expand_path("../", File.dirname(__FILE__)),
+                               :port => 42428).listen <<-LISP
       (defvar cl-user::*beanstalk-port* #{PORT})
       (load #p"#{File.expand_path("../../cl-beanstalk.asd", File.dirname(__FILE__))}")
-  LISP
+    LISP
   rescue PTY::ChildExited
     puts(@main_clucumber && @main_clucumber.output)
   end
