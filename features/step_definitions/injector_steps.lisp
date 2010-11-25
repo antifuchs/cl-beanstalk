@@ -1,6 +1,7 @@
 (defun inject-job (queue body &key (pri 0) (delay 0))
   (beanstalk:use (var :connection) queue)
-  (beanstalk:put (var :connection) pri delay 90 body))
+  (setf (var :injected-job-id)
+        (beanstalk:put (var :connection) pri delay 90 body)))
 
 (When* #?"^I inject a job \"([^\"]*)\" into the \"([^\"]*)\" queue$" (body queue)
   (inject-job queue body))
