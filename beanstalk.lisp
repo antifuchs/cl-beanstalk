@@ -263,23 +263,27 @@
 (defun parse-yaml-data (n-bytes stream string-fields)
   (let ((data (make-array n-bytes :element-type '(unsigned-byte 8))))
     (read-sequence data stream)
-    (let* ((string (flexi-streams:octets-to-string data :external-format *yaml-external-format*))
-          (lines (split-sequence:split-sequence #\Newline string :remove-empty-subseqs t)))
-     (when (string= (first lines) "---")
-       (pop lines))
-     (loop for line in lines
-           if (string= "- " line :end2 2)
-             collect (subseq line 2)
-           else if (position #\: line)
-                  collect (intern (string-upcase (subseq line 0 (position #\: line))) :keyword)
-                  and collect (let ((value (subseq line (+ 2 (position #\: line)))))
-                                (if (member (intern (string-upcase (subseq line 0 (position #\: line))) :keyword)
-                                            string-fields)
-                                    value
-                                    (handler-case (parse-integer value)
-                                      (error () value))))
-           else
-             do (error 'yaml-parsing-failed :document string)))))
+    (unwind-protect
+        (let* ((string (flexi-streams:octets-to-string data :external-format *yaml-external-format*))
+               (lines (split-sequence:split-sequence #\Newline string :remove-empty-subseqs t)))
+          (when (string= (first lines) "---")
+            (pop lines))
+          (loop for line in lines
+                if (string= "- " line :end2 2)
+                  collect (subseq line 2)
+                else if (position #\: line)
+                       collect (intern (string-upcase (subseq line 0 (position #\: line))) :keyword)
+                       and collect (let ((value (subseq line (+ 2 (position #\: line)))))
+                                     (if (member (intern (string-upcase (subseq line 0 (position #\: line))) :keyword)
+                                                 string-fields)
+                                         value
+                                         (handler-case (parse-integer value)
+                                           (error () value))))
+                else
+                  do (error 'yaml-parsing-failed :document string)))
+      ;; YAML terminates with \r\n
+      ;; see https://github.com/kr/beanstalkd/blob/master/prot.c#L1031
+      (read-line stream))))
 
 (defun beanstalk:stats-job (connection id)
   (command-reply-case (reply connection :stats-job nil id)
