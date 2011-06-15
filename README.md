@@ -10,7 +10,7 @@ CL-BEANSTALK requires three CL libraries to run:
 2. [flexi-streams](http://weitz.de/flexi-streams/)
 3. [split-sequence](http://www.cliki.net/SPLIT-SEQUENCE)
 
-All of these libraries are available via [clbuild](http://common-lisp.net/project/clbuild) and other packaging services.
+All of these libraries are available via [quicklisp](http://quicklisp.org/).
 
 Once you have these libraries, git clone the cl-beanstalk repository and symlink the cl-beanstalk.asd file to your asdf:\*central-registry\* directory:
 
