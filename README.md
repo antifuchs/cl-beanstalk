@@ -12,11 +12,20 @@ CL-BEANSTALK requires three CL libraries to run:
 
 All of these libraries are available via [quicklisp](http://quicklisp.org/).
 
-Once you have these libraries, git clone the cl-beanstalk repository and symlink the cl-beanstalk.asd file to your asdf:\*central-registry\* directory:
+### Getting cl-beanstalk from quicklisp
+
+On the lisp REPL, with quicklisp loaded, run:
+
+        (ql:quickload :cl-beanstalk)
+
+And you're done!
+
+### Getting cl-beanstalk from source
 
 	git clone git://github.com/antifuchs/cl-beanstalk.git
-	ln -sf `pwd`/cl-beanstalk/cl-beanstalk.asd /your/asdf-central-registry-dir/
-	
+
+Then, add the directory to your asdf system definition directory. After this, asdf:load-system should be able to find and load cl-beanstalk.
+        
 ## Using CL-BEANSTALK
 
 First, all protocol functions reside in the **BEANSTALK:** package. Their names are the same as in the [beanstalk protocol documentation](http://github.com/kr/beanstalkd/blob/v1.4.2/doc/protocol.txt?raw=true).
