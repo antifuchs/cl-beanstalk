@@ -1,5 +1,5 @@
 require 'cucumber'
-require 'spec'
+require 'rspec'
 
 require 'beanstalk-client'
 require 'clucumber'
@@ -12,8 +12,7 @@ BEANSTALK_CONNSPEC = "localhost:#{PORT}"
 
 unless File.exist?(File.expand_path("../step_definitions/clucumber_override.wire", File.dirname(__FILE__)))
   begin
-    ClucumberSubprocess.launch(File.expand_path("../", File.dirname(__FILE__)),
-                               :port => 42428).listen <<-LISP
+    ClucumberSubprocess.launch(File.expand_path("../", File.dirname(__FILE__))).listen <<-LISP
       (defvar cl-user::*beanstalk-port* #{PORT})
       (load #p"#{File.expand_path("../../cl-beanstalk.asd", File.dirname(__FILE__))}")
     LISP

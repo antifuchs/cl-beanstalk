@@ -1,0 +1,2 @@
+host: 127.0.0.1
+port: <%= ENV["CLUCUMBER_PORT"] || 42427 %>
