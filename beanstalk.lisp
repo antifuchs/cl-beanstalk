@@ -183,7 +183,7 @@
   (macrolet ((reservoid (command &rest args)
                `(command-reply-case (reply connection ,command nil ,@args)
                   (:deadline_soon ()
-                    (warn 'beanstalk:deadline-soon)
+                    (warn 'deadline-soon)
                     (values nil nil :deadline-soon))
                   (:timed_out ()
                     (values nil nil :timed-out))
