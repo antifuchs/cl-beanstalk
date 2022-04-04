@@ -63,44 +63,54 @@
     (funcall data-producer (stream-of connection)))
   (read-reply connection))
 
-(define-condition beanstalk-error () ())
-(define-condition bad-reply ()
+;;; Conditions:
+
+(define-condition beanstalk:beanstalk-error () ())
+
+(define-condition beanstalk:bad-reply ()
   ((reply :initarg :reply :reader reply))
   (:report (lambda (o s)
              (format s "Received unknown reply ~S from server."
                      (reply o)))))
-(define-condition beanstalkd-out-of-memory (beanstalk-error) ()
+
+(define-condition beanstalk:beanstalkd-out-of-memory (beanstalk:beanstalk-error) ()
   (:report (lambda (o s)
              (declare (ignore o))
              (format s "Beanstalkd is out of memory - retry later."))))
-(define-condition buried-job (warning)
+
+(define-condition beanstalk:buried-job (warning)
   ((id :initarg :id :reader buried-job-id))
   (:report (lambda (o s)
              (format s "Beanstalkd ran out of memory growing the priority queue: Job #~A buried."
                      (buried-job-id o)))))
-(define-condition beanstalkd-draining (beanstalk-error) ()
+
+(define-condition beanstalk:beanstalkd-draining (beanstalk:beanstalk-error) ()
   (:report (lambda (o s)
              (declare (ignore o))
              (format s "Beanstalkd is draining jobs - try another server, or disconnect and retry."))))
-(define-condition beanstalkd-internal-error (beanstalk-error) ()
+
+(define-condition beanstalk:beanstalkd-internal-error (beanstalk:beanstalk-error) ()
   (:report (lambda (o s)
              (declare (ignore o))
              (format s "Internal error in the beanstalkd server. Please report at <http://groups.google.com/group/beanstalk-talk>."))))
-(define-condition bad-message-format (beanstalk-error) ()
+
+(define-condition beanstalk:bad-message-format (beanstalk:beanstalk-error) ()
   (:report (lambda (o s)
              (declare (ignore o))
              (format s "Server reports a malformed protocol message: This is a bug in cl-beanstalk. Please report to the authors."))))
-(define-condition expected-crlf (bad-message-format) ()
+
+(define-condition beanstalk:expected-crlf (beanstalk:bad-message-format) ()
   (:report (lambda (o s)
              (declare (ignore o))
              (format s "Server reports that there is a CRLF missing at the end of data. This is a bug in cl-beanstalk. Please report it to the authors."))))
-(define-condition unknown-command (beanstalk-error)
+
+(define-condition beanstalk:unknown-command (beanstalk:beanstalk-error)
   ((unknown-command :initarg command :reader unknown-command))
   (:report (lambda (o s)
              (format s "Server doesn't understand the command that this client sent (~A). This could indicate a protocol mismatch."
                      (unknown-command o)))))
 
-(define-condition deadline-soon (warning) ()
+(define-condition beanstalk:deadline-soon (warning) ()
   (:report (lambda (o s)
              (declare (ignore o))
              (format s "Deadline for a previously reserved job expires in less than 1 second."))))
@@ -114,7 +124,7 @@
              (case (first ,reply)
                ,@(loop for clause in clauses
                        collect `(,(first clause) (apply (lambda ,@(rest clause)) (rest ,reply))))
-               (:out_of_memory (cerror "Retry" 'beanstalkd-out-of-memory)
+               (:out_of_memory (cerror "Retry" 'beanstalk:beanstalkd-out-of-memory)
                                (throw 'retry nil))
                (:internal_error (error 'beanstalk:beanstalkd-internal-error))
                (:draining (error 'beanstalk:beanstalkd-draining))
@@ -252,7 +262,7 @@
 
 ;; Super stupid YAML parsing, thanks to earl:
 
-(define-condition beanstalk:yaml-parsing-failed (beanstalk-error)
+(define-condition beanstalk:yaml-parsing-failed (beanstalk:beanstalk-error)
   ((document :initarg :document :reader document))
   (:report (lambda (o s)
              (format s "cl-beanstalk's overly simplicistic YAML parser fails on ~S. Please contact the authors."
